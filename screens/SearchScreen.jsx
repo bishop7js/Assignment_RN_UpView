@@ -14,7 +14,11 @@ import { MovieContext } from '../contexts/MovieContext';
 
 const SearchScreen = ({ navigation }) => {
   const [query, setQuery] = useState('');
+  const [yearFilter, setYearFilter] = useState('');
+  const [filteredMovies, setFilteredMovies] = useState([]);
+  
   const { 
+    searchQuery, 
     setSearchQuery, 
     fetchMoviesList, 
     moviesData, 
@@ -25,31 +29,38 @@ const SearchScreen = ({ navigation }) => {
   } = useContext(MovieContext);
 
   useEffect(() => {
+    if (!yearFilter.trim()) {
+      setFilteredMovies(moviesData);
+    } else {
+      const filtered = moviesData.filter(movie => 
+        movie.Year.includes(yearFilter)
+      );
+      setFilteredMovies(filtered);
+    }
+  }, [moviesData, yearFilter]);
+
+  useEffect(() => {
     if (query.trim()) {
       const delayedSearch = setTimeout(() => {
         handleSearch();
       }, 500);
 
       return () => clearTimeout(delayedSearch);
+    } else {
+      setFilteredMovies([]);
+      setYearFilter('');
     }
   }, [query]);
 
   const handleSearch = () => {
     if (query.trim()) {
       setSearchQuery(query);
-      fetchMoviesList(query, 1, false); 
+      fetchMoviesList(query, 1, false);
     }
   };
 
-  const renderFooter = () => {
-    if (!loadingMore) return null;
-    
-    return (
-      <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color="#007AFF" />
-        <Text style={styles.footerText}>Loading more movies...</Text>
-      </View>
-    );
+  const clearFilters = () => {
+    setYearFilter('');
   };
 
   const renderSearchInputForm = () => {
@@ -61,7 +72,37 @@ const SearchScreen = ({ navigation }) => {
           value={query}
           onChangeText={setQuery}
         />
+        
+        {query.trim() !== '' && moviesData.length > 0 && (
+          <View style={styles.filterRow}>
+            <TextInput 
+              placeholder="Filter by Year (e.g., 2020)" 
+              style={styles.yearInput}
+              value={yearFilter}
+              onChangeText={setYearFilter}
+              keyboardType="numeric"
+              maxLength={4}
+            />
+            {yearFilter !== '' && (
+              <TouchableOpacity style={styles.clearButton} onPress={clearFilters}>
+                <Text style={styles.clearButtonText}>Clear</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
         <Button title="Search" onPress={handleSearch} />
+      </View>
+    );
+  };
+
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+    
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color="#007AFF" />
+        <Text style={styles.footerText}>Loading more movies...</Text>
       </View>
     );
   };
@@ -78,11 +119,17 @@ const SearchScreen = ({ navigation }) => {
   const renderMoviesList = () => {
     return (
       <View style={styles.listContainer}>
-        <Text style={styles.listTitle}>
-          Movies ({moviesData.length}/{totalResults})
-        </Text>
+        <View style={styles.listHeader}>
+          <Text style={styles.listTitle}>
+            Movies ({filteredMovies.length}/{moviesData.length})
+          </Text>
+          {yearFilter && (
+            <Text style={styles.filterInfo}>Filtered by: {yearFilter}</Text>
+          )}
+        </View>
+        
         <FlatList
-          data={moviesData}
+          data={filteredMovies}
           keyExtractor={(item) => item.imdbID}
           renderItem={({ item }) => (
             <TouchableOpacity 
@@ -95,7 +142,9 @@ const SearchScreen = ({ navigation }) => {
               />
               <View style={styles.movieDetails}>
                 <Text style={styles.movieTitle}>{item.Title}</Text>
-                <Text style={styles.movieYear}>Year: {item.Year}</Text>
+                <Text style={[styles.movieYear, yearFilter && item.Year.includes(yearFilter) && styles.highlightedYear]}>
+                  Year: {item.Year}
+                </Text>
                 <Text style={styles.movieType}>Type: {item.Type}</Text>
               </View>
             </TouchableOpacity>
@@ -115,11 +164,16 @@ const SearchScreen = ({ navigation }) => {
       
       {loading && renderLoadingIndicator()}
       
-      {!loading && moviesData.length > 0 && renderMoviesList()}
+      {!loading && filteredMovies.length > 0 && renderMoviesList()}
       
-      {!loading && query && moviesData.length === 0 && (
+      {!loading && query && filteredMovies.length === 0 && (
         <View style={styles.noResultsContainer}>
-          <Text style={styles.noResultsText}>No movies found for "{query}"</Text>
+          <Text style={styles.noResultsText}>
+            {yearFilter 
+              ? `No movies found for "${query}" in year ${yearFilter}`
+              : `No movies found for "${query}"`
+            }
+          </Text>
         </View>
       )}
     </View>
@@ -145,6 +199,46 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     backgroundColor: '#fff',
   },
+  filterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  yearInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+    padding: 12,
+    borderRadius: 8,
+    fontSize: 16,
+    backgroundColor: '#f8f9ff',
+    marginRight: 10,
+  },
+  clearButton: {
+    backgroundColor: '#FF3B30',
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  clearButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  listHeader: {
+    marginBottom: 15,
+  },
+  listTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  filterInfo: {
+    fontSize: 14,
+    color: '#007AFF',
+    fontWeight: '500',
+    marginTop: 2,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -158,12 +252,6 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     flex: 1,
-  },
-  listTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#333',
   },
   movieItem: {
     flexDirection: 'row',
@@ -201,6 +289,10 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 2,
   },
+  highlightedYear: {
+    color: '#007AFF',
+    fontWeight: 'bold',
+  },
   movieType: {
     fontSize: 14,
     color: '#666',
@@ -225,6 +317,11 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 14,
     color: '#666',
+  },
+  disabledInput: {
+    backgroundColor: '#f0f0f0',
+    borderColor: '#d0d0d0',
+    color: '#999',
   },
 });
 
