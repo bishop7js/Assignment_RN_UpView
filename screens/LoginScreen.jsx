@@ -25,7 +25,6 @@ const LoginScreen = ({ navigation }) => {
 
     setIsLoading(true);
 
-    // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
 
@@ -48,7 +47,6 @@ const LoginScreen = ({ navigation }) => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}>
         
-        {/* Header */}
         <View style={styles.header}>
           <View style={styles.logoContainer}>
             <Text style={styles.logoText}>🎬</Text>
@@ -57,7 +55,6 @@ const LoginScreen = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Login Form */}
         <View style={styles.formContainer}>
           <Text style={styles.welcomeText}>Welcome Back!</Text>
           <Text style={styles.subtitle}>Sign in to discover amazing movies</Text>
@@ -103,7 +100,6 @@ const LoginScreen = ({ navigation }) => {
             )}
           </TouchableOpacity>
 
-          {/* Simple Test Credentials */}
           <View style={styles.credentialsContainer}>
             <Text style={styles.credentialsText}>
               Test Credentials: username: upview, password: upview
@@ -111,7 +107,6 @@ const LoginScreen = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>Discover • Watch • Enjoy</Text>
         </View>

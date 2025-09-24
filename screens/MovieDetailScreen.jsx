@@ -7,7 +7,8 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { MovieContext } from '../contexts/MovieContext';
+import { OMDB_API_KEY } from '@env';
+
 
 const MovieDetailScreen = ({ route }) => {
   const { movie } = route.params;
@@ -20,7 +21,7 @@ const MovieDetailScreen = ({ route }) => {
 
   const fetchMovieDetails = async () => {
     try {
-      const response = await fetch(`http://www.omdbapi.com/?i=${movie.imdbID}&apikey=c9266d2e`);
+      const response = await fetch(`http://www.omdbapi.com/?i=${movie.imdbID}&apikey=${OMDB_API_KEY}`);
       const data = await response.json();
       if (data.Response === "True") {
         setMovieDetails(data);

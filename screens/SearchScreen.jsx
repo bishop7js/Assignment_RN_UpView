@@ -15,7 +15,6 @@ import { MovieContext } from '../contexts/MovieContext';
 const SearchScreen = ({ navigation }) => {
   const [query, setQuery] = useState('');
   const { 
-    searchQuery, 
     setSearchQuery, 
     fetchMoviesList, 
     moviesData, 
@@ -25,7 +24,6 @@ const SearchScreen = ({ navigation }) => {
     totalResults 
   } = useContext(MovieContext);
 
-  // Debouncing effect
   useEffect(() => {
     if (query.trim()) {
       const delayedSearch = setTimeout(() => {
@@ -39,7 +37,7 @@ const SearchScreen = ({ navigation }) => {
   const handleSearch = () => {
     if (query.trim()) {
       setSearchQuery(query);
-      fetchMoviesList(query, 1, false); // Reset to page 1
+      fetchMoviesList(query, 1, false); 
     }
   };
 
