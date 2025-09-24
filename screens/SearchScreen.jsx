@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,21 +6,52 @@ import {
   StyleSheet,
   Button,
   FlatList,
-  ScrollView,
   Image,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { MovieContext } from '../contexts/MovieContext';
 
 const SearchScreen = ({ navigation }) => {
   const [query, setQuery] = useState('');
-  const { searchQuery, setSearchQuery, fetchMoviesList, moviesData } = useContext(MovieContext);
+  const { 
+    searchQuery, 
+    setSearchQuery, 
+    fetchMoviesList, 
+    moviesData, 
+    loadMoreMovies,
+    loading,
+    loadingMore,
+    totalResults 
+  } = useContext(MovieContext);
+
+  // Debouncing effect
+  useEffect(() => {
+    if (query.trim()) {
+      const delayedSearch = setTimeout(() => {
+        handleSearch();
+      }, 500);
+
+      return () => clearTimeout(delayedSearch);
+    }
+  }, [query]);
 
   const handleSearch = () => {
     if (query.trim()) {
       setSearchQuery(query);
-      fetchMoviesList(query);
+      fetchMoviesList(query, 1, false); // Reset to page 1
     }
+  };
+
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+    
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color="#007AFF" />
+        <Text style={styles.footerText}>Loading more movies...</Text>
+      </View>
+    );
   };
 
   const renderSearchInputForm = () => {
@@ -37,10 +68,21 @@ const SearchScreen = ({ navigation }) => {
     );
   };
 
+  const renderLoadingIndicator = () => {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.loadingText}>Searching movies...</Text>
+      </View>
+    );
+  };
+
   const renderMoviesList = () => {
     return (
       <View style={styles.listContainer}>
-        <Text style={styles.listTitle}>Movies ({moviesData.length})</Text>
+        <Text style={styles.listTitle}>
+          Movies ({moviesData.length}/{totalResults})
+        </Text>
         <FlatList
           data={moviesData}
           keyExtractor={(item) => item.imdbID}
@@ -61,6 +103,9 @@ const SearchScreen = ({ navigation }) => {
             </TouchableOpacity>
           )}
           showsVerticalScrollIndicator={false}
+          onEndReached={loadMoreMovies}
+          onEndReachedThreshold={0.1}
+          ListFooterComponent={renderFooter}
         />
       </View>
     );
@@ -69,7 +114,16 @@ const SearchScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       {renderSearchInputForm()}
-      {moviesData.length > 0 && renderMoviesList()}
+      
+      {loading && renderLoadingIndicator()}
+      
+      {!loading && moviesData.length > 0 && renderMoviesList()}
+      
+      {!loading && query && moviesData.length === 0 && (
+        <View style={styles.noResultsContainer}>
+          <Text style={styles.noResultsText}>No movies found for "{query}"</Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -92,6 +146,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 10,
     backgroundColor: '#fff',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 50,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#666',
   },
   listContainer: {
     flex: 1,
@@ -142,6 +207,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     textTransform: 'capitalize',
+  },
+  noResultsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 50,
+  },
+  noResultsText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+  },
+  footerLoader: {
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  footerText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: '#666',
   },
 });
 
