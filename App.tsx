@@ -5,6 +5,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from './screens/LoginScreen';
 import SearchScreen from './screens/SearchScreen';
+import {MovieProvider} from './contexts/MovieContext';
 
 const Stack = createNativeStackNavigator();
 
@@ -12,6 +13,7 @@ function App() {
   return (
     <SafeAreaProvider>
       <NavigationContainer>
+        <MovieProvider>
           <Stack.Navigator initialRouteName="Login">
             <Stack.Screen
               name="Login"
@@ -20,6 +22,8 @@ function App() {
             />
             <Stack.Screen name="Search" component={SearchScreen} />
           </Stack.Navigator>
+        </MovieProvider>
+          
       </NavigationContainer>
     </SafeAreaProvider>
   );
