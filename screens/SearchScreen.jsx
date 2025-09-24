@@ -1,80 +1,143 @@
-import React, { useContext } from 'react';
-import { View, Text, TextInput, StyleSheet, Button, FlatList, ScrollView } from 'react-native';
+import React, { useContext, useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  Button,
+  FlatList,
+  ScrollView,
+  Image,
+} from 'react-native';
+import { MovieContext } from '../contexts/MovieContext';
 
 const SearchScreen = () => {
+  const [query, setQuery] = useState('');
+  const { searchQuery, setSearchQuery, fetchMoviesList, moviesData } = useContext(MovieContext);
+
+  const handleSearch = () => {
+    if (query.trim()) {
+      setSearchQuery(query);
+      fetchMoviesList(query);
+    }
+  };
+
+  const renderSearchInputForm = () => {
+    return (
+      <View style={styles.searchContainer}>
+        <TextInput 
+          placeholder="Search Movies" 
+          style={styles.input}
+          value={query}
+          onChangeText={setQuery}
+        />
+        <Button title="Search" onPress={handleSearch} />
+      </View>
+    );
+  };
+
+  const renderMoviesList = () => {
+    return (
+      <View style={styles.listContainer}>
+        <Text style={styles.listTitle}>Movies ({moviesData.length})</Text>
+        <FlatList
+          data={moviesData}
+          keyExtractor={(item) => item.imdbID}
+          renderItem={({ item }) => (
+            <View style={styles.movieItem}>
+              <Image 
+                source={{ uri: item.Poster !== 'N/A' ? item.Poster : 'https://via.placeholder.com/100x150' }} 
+                style={styles.moviePoster}
+              />
+              <View style={styles.movieDetails}>
+                <Text style={styles.movieTitle}>{item.Title}</Text>
+                <Text style={styles.movieYear}>Year: {item.Year}</Text>
+                <Text style={styles.movieType}>Type: {item.Type}</Text>
+              </View>
+            </View>
+          )}
+          showsVerticalScrollIndicator={false}
+        />
+      </View>
+    );
+  };
+
   return (
-    <View>
-      <Text>Search screen</Text>
+    <View style={styles.container}>
+      {renderSearchInputForm()}
+      {moviesData.length > 0 && renderMoviesList()}
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    width: '100%',
     paddingHorizontal: 20,
     paddingTop: 20,
+    backgroundColor: '#f5f5f5',
   },
-  formContainer: {
-    padding: 20,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 1,
-  },
-  inputContainer: {
-    marginBottom: 15,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    color: '#333',
+  searchContainer: {
+    marginBottom: 20,
   },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
-    padding: 10,
-    borderRadius: 5,
+    padding: 12,
+    borderRadius: 8,
     fontSize: 16,
+    marginBottom: 10,
+    backgroundColor: '#fff',
   },
   listContainer: {
-    marginTop: 20,
-    padding: 15,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8,
+    flex: 1,
   },
   listTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 15,
     color: '#333',
   },
-  userItem: {
+  movieItem: {
+    flexDirection: 'row',
     backgroundColor: '#fff',
     padding: 15,
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderRadius: 8,
     marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  userNumber: {
+  moviePoster: {
+    width: 60,
+    height: 90,
+    borderRadius: 5,
+    marginRight: 15,
+  },
+  movieDetails: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  movieTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#007AFF',
-  },
-  itemText: {
-    fontSize: 14,
+    color: '#333',
     marginBottom: 5,
-    color: '#555',
+  },
+  movieYear: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 2,
+  },
+  movieType: {
+    fontSize: 14,
+    color: '#666',
+    textTransform: 'capitalize',
   },
 });
 
