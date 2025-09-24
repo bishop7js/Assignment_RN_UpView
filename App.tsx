@@ -5,6 +5,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from './screens/LoginScreen';
 import SearchScreen from './screens/SearchScreen';
+import MovieDetailScreen from './screens/MovieDetailScreen';
 import {MovieProvider} from './contexts/MovieContext';
 
 const Stack = createNativeStackNavigator();
@@ -21,6 +22,11 @@ function App() {
               options={{ headerShown: false }}
             />
             <Stack.Screen name="Search" component={SearchScreen} />
+            <Stack.Screen 
+              name="MovieDetail" 
+              component={MovieDetailScreen}
+              options={{ title: 'Movie Details' }}
+            />
           </Stack.Navigator>
         </MovieProvider>
           

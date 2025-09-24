@@ -8,10 +8,11 @@ import {
   FlatList,
   ScrollView,
   Image,
+  TouchableOpacity,
 } from 'react-native';
 import { MovieContext } from '../contexts/MovieContext';
 
-const SearchScreen = () => {
+const SearchScreen = ({ navigation }) => {
   const [query, setQuery] = useState('');
   const { searchQuery, setSearchQuery, fetchMoviesList, moviesData } = useContext(MovieContext);
 
@@ -44,7 +45,10 @@ const SearchScreen = () => {
           data={moviesData}
           keyExtractor={(item) => item.imdbID}
           renderItem={({ item }) => (
-            <View style={styles.movieItem}>
+            <TouchableOpacity 
+              style={styles.movieItem}
+              onPress={() => navigation.navigate('MovieDetail', { movie: item })}
+            >
               <Image 
                 source={{ uri: item.Poster !== 'N/A' ? item.Poster : 'https://via.placeholder.com/100x150' }} 
                 style={styles.moviePoster}
@@ -54,7 +58,7 @@ const SearchScreen = () => {
                 <Text style={styles.movieYear}>Year: {item.Year}</Text>
                 <Text style={styles.movieType}>Type: {item.Type}</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           )}
           showsVerticalScrollIndicator={false}
         />
