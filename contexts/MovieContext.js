@@ -76,7 +76,6 @@ export const MovieProvider = ({ children }) => {
         loadFavouritesFromStorage();
     }, []);
 
-    // Save favourites to AsyncStorage whenever favourites change
     useEffect(() => {
         saveFavouritesToStorage();
     }, [favourites]);

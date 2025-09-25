@@ -43,8 +43,6 @@ const FavouriteListScreen = () => {
         );
     }
 
-    console.log("Favourites List:", favourites);
-
     return (
         <View style={styles.container}>
             <Text style={styles.headerTitle}>My Favourites</Text>
