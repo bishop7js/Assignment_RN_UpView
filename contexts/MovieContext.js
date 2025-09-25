@@ -10,6 +10,7 @@ export const MovieProvider = ({ children }) => {
     const [totalResults, setTotalResults] = useState(0);
     const [loading, setLoading] = useState(false);
     const [loadingMore, setLoadingMore] = useState(false);
+    const [favourites, setFavourites] = useState([]);
 
     const fetchMoviesList = async (query, page = 1, appendResults = false) => {
         try {
@@ -52,6 +53,36 @@ export const MovieProvider = ({ children }) => {
         }
     };
 
+        const loadFavouritesFromStorage = async () => {
+        try {
+            const storedFavourites = await AsyncStorage.getItem('favourites');
+            if (storedFavourites !== null) {
+                setFavourites(JSON.parse(storedFavourites));
+            }
+        } catch (error) {
+            console.error('Error loading favourites:', error);
+        }
+    };
+
+    const saveFavouritesToStorage = async () => {
+        try {
+            await AsyncStorage.setItem('favourites', JSON.stringify(favourites));
+        } catch (error) {
+            console.error('Error saving favourites:', error);
+        }
+    };
+
+    useEffect(() => {
+        loadFavouritesFromStorage();
+    }, []);
+
+    // Save favourites to AsyncStorage whenever favourites change
+    useEffect(() => {
+        saveFavouritesToStorage();
+    }, [favourites]);
+
+    
+
     const value = {
         searchQuery,
         setSearchQuery,
@@ -62,7 +93,9 @@ export const MovieProvider = ({ children }) => {
         loading,
         loadingMore,
         totalResults,
-        currentPage
+        currentPage,
+        favourites,
+        setFavourites,
     };
 
     return (

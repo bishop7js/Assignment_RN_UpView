@@ -9,6 +9,7 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { MovieContext } from '../contexts/MovieContext';
 
@@ -16,24 +17,26 @@ const SearchScreen = ({ navigation }) => {
   const [query, setQuery] = useState('');
   const [yearFilter, setYearFilter] = useState('');
   const [filteredMovies, setFilteredMovies] = useState([]);
-  
-  const { 
-    searchQuery, 
-    setSearchQuery, 
-    fetchMoviesList, 
-    moviesData, 
+
+  const {
+    searchQuery,
+    setSearchQuery,
+    fetchMoviesList,
+    moviesData,
     loadMoreMovies,
     loading,
     loadingMore,
-    totalResults 
+    totalResults,
+    favourites,
+    setFavourites,
   } = useContext(MovieContext);
 
   useEffect(() => {
     if (!yearFilter.trim()) {
       setFilteredMovies(moviesData);
     } else {
-      const filtered = moviesData.filter(movie => 
-        movie.Year.includes(yearFilter)
+      const filtered = moviesData.filter(movie =>
+        movie.Year.includes(yearFilter),
       );
       setFilteredMovies(filtered);
     }
@@ -63,20 +66,29 @@ const SearchScreen = ({ navigation }) => {
     setYearFilter('');
   };
 
+  const handleAddToFavourite = movie => {
+    Alert.alert(
+      'Added to Favourites',
+      `${movie.Title} has been added to your favourites!`,
+      [{ text: 'OK' }],
+    );
+    setFavourites([...favourites, movie]);
+  };
+
   const renderSearchInputForm = () => {
     return (
       <View style={styles.searchContainer}>
-        <TextInput 
-          placeholder="Search Movies" 
+        <TextInput
+          placeholder="Search Movies"
           style={styles.input}
           value={query}
           onChangeText={setQuery}
         />
-        
+
         {query.trim() !== '' && moviesData.length > 0 && (
           <View style={styles.filterRow}>
-            <TextInput 
-              placeholder="Filter by Year (e.g., 2020)" 
+            <TextInput
+              placeholder="Filter by Year (e.g., 2020)"
               style={styles.yearInput}
               value={yearFilter}
               onChangeText={setYearFilter}
@@ -84,7 +96,10 @@ const SearchScreen = ({ navigation }) => {
               maxLength={4}
             />
             {yearFilter !== '' && (
-              <TouchableOpacity style={styles.clearButton} onPress={clearFilters}>
+              <TouchableOpacity
+                style={styles.clearButton}
+                onPress={clearFilters}
+              >
                 <Text style={styles.clearButtonText}>Clear</Text>
               </TouchableOpacity>
             )}
@@ -98,7 +113,7 @@ const SearchScreen = ({ navigation }) => {
 
   const renderFooter = () => {
     if (!loadingMore) return null;
-    
+
     return (
       <View style={styles.footerLoader}>
         <ActivityIndicator size="small" color="#007AFF" />
@@ -127,25 +142,51 @@ const SearchScreen = ({ navigation }) => {
             <Text style={styles.filterInfo}>Filtered by: {yearFilter}</Text>
           )}
         </View>
-        
+
         <FlatList
           data={filteredMovies}
-          keyExtractor={(item) => item.imdbID}
+          keyExtractor={item => item.imdbID}
           renderItem={({ item }) => (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.movieItem}
-              onPress={() => navigation.navigate('MovieDetail', { movie: item })}
+              onPress={() =>
+                navigation.navigate('MovieDetail', { movie: item })
+              }
             >
-              <Image 
-                source={{ uri: item.Poster !== 'N/A' ? item.Poster : 'https://via.placeholder.com/100x150' }} 
+              <Image
+                source={{
+                  uri:
+                    item.Poster !== 'N/A'
+                      ? item.Poster
+                      : 'https://via.placeholder.com/100x150',
+                }}
                 style={styles.moviePoster}
               />
               <View style={styles.movieDetails}>
                 <Text style={styles.movieTitle}>{item.Title}</Text>
-                <Text style={[styles.movieYear, yearFilter && item.Year.includes(yearFilter) && styles.highlightedYear]}>
+                <Text
+                  style={[
+                    styles.movieYear,
+                    yearFilter &&
+                      item.Year.includes(yearFilter) &&
+                      styles.highlightedYear,
+                  ]}
+                >
                   Year: {item.Year}
                 </Text>
                 <Text style={styles.movieType}>Type: {item.Type}</Text>
+
+                <TouchableOpacity
+                  style={styles.favouriteButton}
+                  onPress={e => {
+                    e.stopPropagation();
+                    handleAddToFavourite(item);
+                  }}
+                >
+                  <Text style={styles.favouriteButtonText}>
+                    ⭐ Add to Favourite
+                  </Text>
+                </TouchableOpacity>
               </View>
             </TouchableOpacity>
           )}
@@ -161,18 +202,24 @@ const SearchScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       {renderSearchInputForm()}
-      
+
+      <View style={{ marginBottom: 10 }}>
+        <Button
+          title="Go to Favourites"
+          onPress={() => navigation.navigate('FavouriteList')}
+        />
+      </View>
+
       {loading && renderLoadingIndicator()}
-      
+
       {!loading && filteredMovies.length > 0 && renderMoviesList()}
-      
+
       {!loading && query && filteredMovies.length === 0 && (
         <View style={styles.noResultsContainer}>
           <Text style={styles.noResultsText}>
-            {yearFilter 
+            {yearFilter
               ? `No movies found for "${query}" in year ${yearFilter}`
-              : `No movies found for "${query}"`
-            }
+              : `No movies found for "${query}"`}
           </Text>
         </View>
       )}
@@ -322,6 +369,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     borderColor: '#d0d0d0',
     color: '#999',
+  },
+  favouriteButton: {
+    backgroundColor: '#f8eca6ff',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 15,
+    marginTop: 8,
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: '#FFA500',
+  },
+  favouriteButtonText: {
+    color: '#FF8C00',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
 
